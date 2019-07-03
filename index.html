@@ -51,7 +51,15 @@
 <script src="https://api.trello.com/1/client.js?key=ab5f6b93f7d8c3b031249f40ecae2d28"></script>
 <script type="text/javascript">
   function saveData(){
-    alert("You clicked this!");
+    fb_links = document.getElementsByClassName("fb_link");
+    for (var i = fb_links.length-1; i >=0; i--){
+      console.log(fb_links[i]);
+      var memberId = fb_links[i].id.split("_")[1];
+      var fb_link = fb_links[i].value;
+      console.log(memberId);
+      console.log(fb_link);
+    }
+    
   }
   function getBoardData(boardId, boardName){
     var key = "ab5f6b93f7d8c3b031249f40ecae2d28"
@@ -81,6 +89,7 @@
         td_facebookLink = document.createElement("input")
         td_facebookLink.setAttribute("type", "text");
         td_facebookLink.setAttribute("id", "fb_"+data[i].id)
+        td_facebookLink.setAttribute("class", "fb_link");
         tr_member = document.createElement("tr");
         tr_member.appendChild(td_memberName);
         tr_member.appendChild(td_facebookLink);
