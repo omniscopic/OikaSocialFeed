@@ -1,32 +1,146 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Oika Social Feed</title>
-	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-</head>
-<body>
+  <title>Oika Social Feed | Dashboard</title>
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+
+<body >
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-	<div class="container">
-		  <a class="navbar-brand" href="#">Oika Social Feed</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor01" aria-controls="navbarColor01" aria-expanded="false" aria-label="Toggle navigation">
+  <div class="container">
+    <a class="navbar-brand" href="#">Oika Social Feed</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor03" aria-controls="navbarColor03" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
 
-  <div class="collapse navbar-collapse" id="navbarColor01">
+  <div class="collapse navbar-collapse" id="navbarColor03">
     <ul class="navbar-nav mr-auto">
-      
     </ul>
     <div class="navbar-collapse collapse w-100 order-3 dual-collapse2">
         <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-                <a class="nav-link" href="#">Logout</a>
+                <a class="nav-link" href="#" onclick="Trello.deauthorize()">Logout</a>
             </li>
         </ul>
     </div>
   </div>
-	</div>
+  </div>
 </nav>
-<script src="js/jquery.min.js"/>
-<script src="js/bootstrap.min.js"/>
+<br>
+<div class="container">
+  <div class="row">
+    <div class="col-md-3">
+      <p class="lead">Select a Board</p>
+      <div class="list-group" id="boards">
+      </div>
+    </div>
+    <div class="col-md-9">
+      <p class="lead">Edit Member Data <button type="button" class="btn btn-outline-primary float-right" onclick="saveData()">Save Changes</button></p>
+      <p class="text-muted" id=board-name></p>
+      <table id="members" class="table table-hover">
+      </table>
+    </div>
+  </div>
+
+</div>
+
+
+
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="https://api.trello.com/1/client.js?key=ab5f6b93f7d8c3b031249f40ecae2d28"></script>
+<script type="text/javascript">
+  function saveData(){
+    alert("You clicked this!");
+  }
+  function getBoardData(boardId, boardName){
+    var key = "ab5f6b93f7d8c3b031249f40ecae2d28"
+    var token = Trello.token();
+    var url = "https://api.trello.com/1/boards/"+boardId+"/members?key="+key+"&token="+token; 
+
+    var board_name_elem = document.getElementById("board-name");
+    board_name_elem.innerText = boardName;
+
+    $.get(url, function(data){
+      console.log(data);
+      var members_table = document.getElementById("members");
+      members_table.innerHTML = "";
+      
+      th_memberName = document.createElement("th");
+      th_memberName.textContent = "Member Name";
+      th_fbLink = document.createElement("th");
+      th_fbLink.textContent = "Facebook Link";
+      tr_members = document.createElement("tr");
+      tr_members.appendChild(th_memberName);
+      tr_members.appendChild(th_fbLink);
+      members_table.appendChild(tr_members);
+      
+      for (var i = data.length - 1; i >= 0; i--) {
+        td_memberName = document.createElement("td");
+        td_memberName.textContent = data[i].fullName;
+        td_facebookLink = document.createElement("input")
+        td_facebookLink.setAttribute("type", "text");
+        td_facebookLink.setAttribute("id", "fb_"+data[i].id)
+        tr_member = document.createElement("tr");
+        tr_member.appendChild(td_memberName);
+        tr_member.appendChild(td_facebookLink);
+
+        members_table.appendChild(tr_member);
+
+      }
+      
+    })
+  }
+
+  function getBoards(){
+    var key = "ab5f6b93f7d8c3b031249f40ecae2d28"
+    var token = Trello.token();
+    var url = "https://api.trello.com/1/members/me/boards?key="+key+"&token="+token;
+    $.get( url, function( data ) {
+      boards = document.getElementById("boards");
+      for (var i = data.length - 1; i >= 0; i--) {
+        var a_elem = document.createElement("a");
+        a_elem.setAttribute("class", "list-group-item list-group-item-action flex-column align-items-start");
+        a_elem.setAttribute("id", "board_"+data[i].id);
+        a_elem.setAttribute("href", "#");
+        a_elem.setAttribute("onClick", 'getBoardData("'+data[i].id+'", "'+data[i].name+'")');
+        var p_elem = document.createElement("p");
+        p_elem.setAttribute("class", "mb-1");
+        p_elem.textContent = data[i].desc;
+        var div_elem = document.createElement("div");
+        div_elem.setAttribute("class", "d-flex w-100 justify-content-between");
+        var h5_elem = document.createElement("h5");
+        h5_elem.setAttribute("class", "mb-1");
+        h5_elem.textContent = data[i].name;
+
+        div_elem.appendChild(h5_elem);
+        a_elem.appendChild(div_elem);
+        a_elem.appendChild(p_elem);
+
+        boards.appendChild(a_elem);
+      }
+
+    });
+  }
+  var authenticationSuccess = function() {
+  console.log('Successful authentication');
+  getBoards();
+};
+
+var authenticationFailure = function() {
+  console.log('Failed authentication');
+};
+Trello.authorize({
+  type: 'popup',
+  name: 'Oika authorize',
+  scope: {
+    read: 'true',
+    write: 'true' },
+  expiration: 'never',
+  success: authenticationSuccess,
+  error: authenticationFailure
+});
+</script>
+
 </body>
 </html>
