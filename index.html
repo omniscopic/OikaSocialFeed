@@ -34,8 +34,9 @@
       </div>
     </div>
     <div class="col-md-9">
-      <p class="lead">Edit Member Data <button type="button" class="btn btn-outline-primary float-right" onclick="saveData()">Save Changes</button></p>
+      <p class="lead">Edit Member Data <button type="button" id="saveChangesBtn" class="btn btn-outline-primary float-right" onclick="saveData()" style="display: none">Save Changes</button></p>
       <p class="text-muted" id=board-name></p>
+      <p id="board-id" style="display:none"></p>
       <table id="members" class="table table-hover">
       </table>
     </div>
@@ -52,13 +53,18 @@
 <script type="text/javascript">
   function saveData(){
     fb_links = document.getElementsByClassName("fb_link");
-    for (var i = fb_links.length-1; i >=0; i--){
-      console.log(fb_links[i]);
+    boardId = document.getElementById("board-id").innerText;
+    memberData = {"board_id": boardId, "links": []}
+    for (var i = 0; i < fb_links.length; i++){
       var memberId = fb_links[i].id.split("_")[1];
       var fb_link = fb_links[i].value;
-      console.log(memberId);
-      console.log(fb_link);
+      memberData['links'].push({"member_id": memberId, "fb_link": fb_link})
     }
+    $.post('https://us-central1-fiverr-oikasocial.cloudfunctions.net/member', memberData).done(
+      function(data){
+        alert(data);
+      })
+
     
   }
   function getBoardData(boardId, boardName){
@@ -68,6 +74,8 @@
 
     var board_name_elem = document.getElementById("board-name");
     board_name_elem.innerText = boardName;
+    var board_id_elem = document.getElementById("board-id");
+    board_id_elem.innerText = boardId;
 
     $.get(url, function(data){
       console.log(data);
@@ -86,10 +94,17 @@
       for (var i = data.length - 1; i >= 0; i--) {
         td_memberName = document.createElement("td");
         td_memberName.textContent = data[i].fullName;
+
+        td_facebookLink_div = document.createElement("div");
+        td_facebookLink_div.setAttribute("class", "form-group");
+        
         td_facebookLink = document.createElement("input")
         td_facebookLink.setAttribute("type", "text");
         td_facebookLink.setAttribute("id", "fb_"+data[i].id)
-        td_facebookLink.setAttribute("class", "fb_link");
+        td_facebookLink.setAttribute("class", "fb_link form-control");
+
+        td_facebookLink_div.appendChild(td_facebookLink);
+
         tr_member = document.createElement("tr");
         tr_member.appendChild(td_memberName);
         tr_member.appendChild(td_facebookLink);
@@ -97,8 +112,23 @@
         members_table.appendChild(tr_member);
 
       }
+
+      $.get('https://us-central1-fiverr-oikasocial.cloudfunctions.net/member?boardID='+boardId, function(resp){
+        for(var i = 0; i < resp.length; i++){
+          facebookLinkInput = document.getElementById("fb_"+resp[i].member_id);
+          facebookLinkInput.value = resp[i].facebook;
+      }
+      })
+
+      
       
     })
+
+    
+
+    saveChangesBtn = document.getElementById("saveChangesBtn");
+    saveChangesBtn.style.display = "block";
+
   }
 
   function getBoards(){
